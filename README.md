@@ -1,4 +1,4 @@
 csrf
 ====
 
-CSRF protection for Martini applications
+This is the eventual home for the csrf protection middleware/handler
