@@ -17,7 +17,7 @@
 // func main() {
 //     m := martini.Classic()
 //     store := sessions.NewCookieStore([]byte("secret123"))
-//     m.Use(sessions.Sessions("my_session", store)
+//     m.Use(sessions.Sessions("my_session", store))
 //     // Setup generation middleware.
 //     m.Use(csrf.Generate(&csrf.Options{
 //         Secret:     "token123",
