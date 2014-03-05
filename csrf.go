@@ -11,7 +11,7 @@
 //     "github.com/martini-contib/csrf"
 //     "github.com/martini-contrib/render"
 //     "github.com/martini-contib/sessions"
-//     "net/http"dd
+//     "net/http"
 // )
 //
 // func main() {
@@ -72,6 +72,12 @@ import (
 
 // Csrf is used to get the current token and validate a suspect token.
 type Csrf interface {
+	// Return Http header to search for token.
+	GetHeaderName() string
+	// Return form value to search for token.
+	GetFormName() string
+	// Return cookie name to search for token.
+	GetCookieName() string
 	// Return the token.
 	GetToken() string
 	// Validate by token.
@@ -79,12 +85,33 @@ type Csrf interface {
 }
 
 type csrf struct {
+	// Header name value for setting and getting csrf token.
+	Header string
+	// Form name value for setting and getting csrf token.
+	Form string
+	// Cookie name value for setting and getting csrf token.
+	Cookie string
 	// Token generated to pass via header, cookie, or hidden form value.
 	Token string
 	// This value must be unique per user.
 	Id string
 	// Secret used along with the unique id above to generate the Token.
 	Secret string
+}
+
+// Returns the name of the Http header for csrf token.
+func (c *csrf) GetHeaderName() string {
+	return c.Header
+}
+
+// Returns the name of the form value for csrf token.
+func (c *csrf) GetFormName() string {
+	return c.Form
+}
+
+// Returns the name of the cookie for csrf token.
+func (c *csrf) GetCookieName() string {
+	return c.Cookie
 }
 
 // Returns the current token. This is typically used
@@ -102,6 +129,12 @@ func (c *csrf) ValidToken(t string) bool {
 type Options struct {
 	// The global secret value used to generate Tokens.
 	Secret string
+	// Http header used to set and get token.
+	Header string
+	// Form value used to set and get token.
+	Form string
+	// Cookie value used to set and get token.
+	Cookie string
 	// Key used for getting the unique Id per user.
 	SessionKey string
 	// If true, send token via X-CSRFToken header.
@@ -118,7 +151,21 @@ const domainReg = `/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\
 // Additionally, depending on options set, generated tokens will be sent via Header and/or Cookie.
 func Generate(opts *Options) martini.Handler {
 	return func(s sessions.Session, c martini.Context, r *http.Request, w http.ResponseWriter) {
-		x := &csrf{Secret: opts.Secret}
+		if opts.Header == "" {
+			opts.Header = "X-CSRFToken"
+		}
+		if opts.Form == "" {
+			opts.Form = "_csrf"
+		}
+		if opts.Cookie == "" {
+			opts.Cookie = "_csrf"
+		}
+		x := &csrf{
+			Secret: opts.Secret,
+			Header: opts.Header,
+			Form:   opts.Form,
+			Cookie: opts.Cookie,
+		}
 		c.MapTo(x, (*Csrf)(nil))
 		uid := s.Get(opts.SessionKey)
 		if uid == nil {
@@ -134,7 +181,7 @@ func Generate(opts *Options) martini.Handler {
 		// or was sen't via an api request.
 		if r.Method == "GET" && r.Header.Get("X-API-Key") == "" {
 			// If cookie present, map existing token, else generate a new one.
-			if ex, err := r.Cookie("_csrf"); err == nil && ex.Value != "" {
+			if ex, err := r.Cookie(opts.Cookie); err == nil && ex.Value != "" {
 				x.Token = ex.Value
 			} else {
 				x.Token = xsrftoken.Generate(x.Secret, x.Id, "POST")
@@ -146,7 +193,7 @@ func Generate(opts *Options) martini.Handler {
 						domain = ""
 					}
 					cookie := &http.Cookie{
-						Name:       "_csrf",
+						Name:       opts.Cookie,
 						Value:      x.Token,
 						Path:       "/",
 						Domain:     domain,
@@ -155,14 +202,14 @@ func Generate(opts *Options) martini.Handler {
 						MaxAge:     0,
 						Secure:     opts.Secure,
 						HttpOnly:   false,
-						Raw:        fmt.Sprintf("_csrf=%s", x.Token),
+						Raw:        fmt.Sprintf("%s=%s", opts.Cookie, x.Token),
 						Unparsed:   []string{fmt.Sprintf("token=%s", x.Token)},
 					}
 					http.SetCookie(w, cookie)
 				}
 			}
 			if opts.SetHeader {
-				w.Header().Add("X-CSRFToken", x.Token)
+				w.Header().Add(opts.Header, x.Token)
 			}
 		}
 	}
@@ -173,15 +220,17 @@ func Generate(opts *Options) martini.Handler {
 // using ValidToken. If this validation fails, http.StatusBadRequest is sent in the reply.
 // If neither a header or form value is faound, http.StatusBadRequest is sent.
 func Validate(r *http.Request, w http.ResponseWriter, x Csrf) {
-	if token := r.Header.Get("X-CSRFToken"); token != "" {
+	if token := r.Header.Get(x.GetHeaderName()); token != "" {
 		if !x.ValidToken(token) {
-			http.Error(w, "Invalid X-CSRFToken", http.StatusBadRequest)
+			msg := fmt.Sprintf("Invalid %s", x.GetHeaderName())
+			http.Error(w, msg, http.StatusBadRequest)
 		}
 		return
 	}
-	if token := r.FormValue("_csrf"); token != "" {
+	if token := r.FormValue(x.GetFormName()); token != "" {
 		if !x.ValidToken(token) {
-			http.Error(w, "Invalid _csrf token", http.StatusBadRequest)
+			msg := fmt.Sprintf("Invalid %s", x.GetFormName())
+			http.Error(w, msg, http.StatusBadRequest)
 		}
 		return
 	}
