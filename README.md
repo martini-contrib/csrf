@@ -26,23 +26,23 @@ func main() {
 	// Setup generation middleware.
 	m.Use(csrf.Generate(&csrf.Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 	}))
 	m.Use(render.Renderer())
 
-	// Simulate the authentication of a session. If userId exists redirect
+	// Simulate the authentication of a session. If userID exists redirect
 	// to a form that requires csrf protection.
 	m.Get("/", func(s sessions.Session, r render.Render, x csrf.Csrf) {
-		if s.Get("userId") == nil {
+		if s.Get("userID") == nil {
 			r.Redirect("/login", 302)
 			return
 		}
 		r.Redirect("/protected", 302)
 	})
 
-	// Set userId for the session.
+	// Set userID for the session.
 	m.Get("/login", func(s sessions.Session, r render.Render) {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		r.Redirect("/", 302)
 	})
 
@@ -53,7 +53,7 @@ func main() {
 
 	// Apply csrf validation to route.
 	m.Post("/protected", csrf.Validate, func(s sessions.Session, r render.Render) {
-		if u := s.Get("userId"); u != nil {
+		if u := s.Get("userID"); u != nil {
 			r.HTML(200, "result", "You submitted a valid token")
 			return
 		}

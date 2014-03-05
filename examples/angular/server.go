@@ -20,14 +20,14 @@ func main() {
 	// Send token as a cookie.
 	m.Use(csrf.Generate(&csrf.Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 		SetCookie:  true,
 	}))
 
-	// Simulate a typical authentication example. If the user has a valid userId render index.html
+	// Simulate a typical authentication example. If the user has a valid userID render index.html
 	// else redirect to "/login".
 	m.Get("/", func(s sessions.Session, r render.Render, req *http.Request, resp http.ResponseWriter) {
-		if u := s.Get("userId"); u == nil {
+		if u := s.Get("userID"); u == nil {
 			r.Redirect("/login", 302)
 			return
 		}
@@ -41,13 +41,13 @@ func main() {
 
 	// Simulate a valid login by setting a bogus session id.
 	m.Post("/login", func(s sessions.Session, r render.Render) {
-		s.Set("userId", "123456789")
+		s.Set("userID", "123456789")
 		r.Redirect("/", 302)
 	})
 
 	// csrf.Validate requires a proper token.
 	m.Post("/protected", csrf.Validate, func(r render.Render, s sessions.Session) {
-		if u := s.Get("userId"); u != nil {
+		if u := s.Get("userID"); u != nil {
 			r.JSON(200, map[string]interface{}{"message": "You did something that required a valid token!"})
 			return
 		}
