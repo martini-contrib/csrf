@@ -18,11 +18,11 @@ func main() {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(csrf.Generate(&csrf.Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 	}))
 
 	m.Get("/", func(s sessions.Session, r render.Render, x csrf.Csrf) {
-		if s.Get("userId") == nil {
+		if s.Get("userID") == nil {
 			r.Redirect("/login", 302)
 			return
 		}
@@ -34,12 +34,12 @@ func main() {
 	})
 
 	m.Post("/login", func(s sessions.Session, r render.Render) {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		r.Redirect("/")
 	})
 
 	m.Post("/protected", csrf.Validate, func(s sessions.Session, r render.Render) {
-		if s.Get("userId") != nil {
+		if s.Get("userID") != nil {
 			r.HTML(200, "result", "You submitted a valid token")
 			return
 		}

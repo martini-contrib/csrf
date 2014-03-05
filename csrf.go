@@ -21,23 +21,23 @@
 //     // Setup generation middleware.
 //     m.Use(csrf.Generate(&csrf.Options{
 //         Secret:     "token123",
-//         SessionKey: "userId",
+//         SessionKey: "userID",
 //     }))
 //     m.Use(render.Renderer())
 //
-//     // Simulate the authentication of a session. If userId exists redirect
+//     // Simulate the authentication of a session. If userID exists redirect
 //     // to a form that requires csrf protection.
 //     m.Get("/", func(s sessions.Session, r render.Render, x csrf.Csrf) {
-//         if s.Get("userId") == nil {
+//         if s.Get("userID") == nil {
 //             r.Redirect("/login", 302)
 //             return
 //         }
 //         r.Redirect("/protected", 302)
 //     })
 //
-//     // Set userId for the session.
+//     // Set userID for the session.
 //     m.Get("/login", func(s sessions.Session, r render.Render) {
-//         s.Set("userId", "123456")
+//         s.Set("userID", "123456")
 //         r.Redirect("/", 302)
 //     })
 //
@@ -48,7 +48,7 @@
 //
 //     // Apply csrf validation to route.
 //     m.Post("/protected", csrf.Validate, func(s sessions.Session, r render.Render) {
-//         if u := s.Get("userId"); u != nil {
+//         if u := s.Get("userID"); u != nil {
 //             r.HTML(200, "result", "You submitted a valid token")
 //             return
 //         }
@@ -94,7 +94,7 @@ type csrf struct {
 	// Token generated to pass via header, cookie, or hidden form value.
 	Token string
 	// This value must be unique per user.
-	Id string
+	ID string
 	// Secret used along with the unique id above to generate the Token.
 	Secret string
 }
@@ -120,12 +120,12 @@ func (c *csrf) GetToken() string {
 	return c.Token
 }
 
-// Validates the passed token against the existing Secret and Id.
+// Validates the passed token against the existing Secret and ID.
 func (c *csrf) ValidToken(t string) bool {
-	return xsrftoken.Valid(t, c.Secret, c.Id, "POST")
+	return xsrftoken.Valid(t, c.Secret, c.ID, "POST")
 }
 
-// Maintains options to manage behavior of Generate.
+// Options maintains options to manage behavior of Generate.
 type Options struct {
 	// The global secret value used to generate Tokens.
 	Secret string
@@ -135,7 +135,7 @@ type Options struct {
 	Form string
 	// Cookie value used to set and get token.
 	Cookie string
-	// Key used for getting the unique Id per user.
+	// Key used for getting the unique ID per user.
 	SessionKey string
 	// If true, send token via X-CSRFToken header.
 	SetHeader bool
@@ -147,7 +147,7 @@ type Options struct {
 
 const domainReg = `/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$/`
 
-// Maps Csrf to each request. If this request is a Get request, it will generate a new token.
+// Generate maps Csrf to each request. If this request is a Get request, it will generate a new token.
 // Additionally, depending on options set, generated tokens will be sent via Header and/or Cookie.
 func Generate(opts *Options) martini.Handler {
 	return func(s sessions.Session, c martini.Context, r *http.Request, w http.ResponseWriter) {
@@ -173,7 +173,7 @@ func Generate(opts *Options) martini.Handler {
 		}
 		switch uid.(type) {
 		case string:
-			x.Id = uid.(string)
+			x.ID = uid.(string)
 		default:
 			return
 		}
@@ -184,7 +184,7 @@ func Generate(opts *Options) martini.Handler {
 			if ex, err := r.Cookie(opts.Cookie); err == nil && ex.Value != "" {
 				x.Token = ex.Value
 			} else {
-				x.Token = xsrftoken.Generate(x.Secret, x.Id, "POST")
+				x.Token = xsrftoken.Generate(x.Secret, x.ID, "POST")
 				if opts.SetCookie {
 					expire := time.Now().AddDate(0, 0, 1)
 					// Verify the domain is valid. If it is not, set as empty.

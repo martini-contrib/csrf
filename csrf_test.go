@@ -18,12 +18,12 @@ func Test_GenerateToken(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
@@ -52,13 +52,13 @@ func Test_GenerateCookie(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 		SetCookie:  true,
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
@@ -87,14 +87,14 @@ func Test_GenerateCustomCookie(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 		SetCookie:  true,
 		Cookie:     "seesurf",
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
@@ -123,13 +123,13 @@ func Test_GenerateHeader(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 		SetHeader:  true,
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
@@ -158,14 +158,14 @@ func Test_GenerateCustomHeader(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 		SetHeader:  true,
 		Header:     "X-SEESurfToken",
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
@@ -194,12 +194,12 @@ func Test_Validate(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
@@ -255,14 +255,14 @@ func Test_ValidateCustom(t *testing.T) {
 	m.Use(sessions.Sessions("my_session", store))
 	m.Use(Generate(&Options{
 		Secret:     "token123",
-		SessionKey: "userId",
+		SessionKey: "userID",
 		Header:     "X-SEESurfToken",
 		Form:       "_seesurf",
 	}))
 
 	// Simulate login.
 	m.Get("/login", func(s sessions.Session) string {
-		s.Set("userId", "123456")
+		s.Set("userID", "123456")
 		return "OK"
 	})
 
