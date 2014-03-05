@@ -248,6 +248,7 @@ func Test_Validate(t *testing.T) {
 		t.Error("Validation of X-CSRFToken failed")
 	}
 }
+
 func Test_ValidateCustom(t *testing.T) {
 	m := martini.Classic()
 	store := sessions.NewCookieStore([]byte("secret123"))
