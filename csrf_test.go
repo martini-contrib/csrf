@@ -148,7 +148,7 @@ func Test_GenerateHeader(t *testing.T) {
 	m.ServeHTTP(res2, req2)
 
 	if res2.Header().Get("X-CSRFToken") == "" {
-		t.Error("Failed to set csrf cookie")
+		t.Error("Failed to set X-CSRFToken header")
 	}
 }
 
