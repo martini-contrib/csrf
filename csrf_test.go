@@ -81,6 +81,42 @@ func Test_GenerateCookie(t *testing.T) {
 	}
 }
 
+func Test_GenerateCustomCookie(t *testing.T) {
+	m := martini.Classic()
+	store := sessions.NewCookieStore([]byte("secret123"))
+	m.Use(sessions.Sessions("my_session", store))
+	m.Use(Generate(&Options{
+		Secret:     "token123",
+		SessionKey: "userId",
+		SetCookie:  true,
+		Cookie:     "seesurf",
+	}))
+
+	// Simulate login.
+	m.Get("/login", func(s sessions.Session) string {
+		s.Set("userId", "123456")
+		return "OK"
+	})
+
+	// Generate cookie.
+	m.Get("/private", func(s sessions.Session, x Csrf) string {
+		return "OK"
+	})
+
+	res := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/login", nil)
+	m.ServeHTTP(res, req)
+
+	res2 := httptest.NewRecorder()
+	req2, _ := http.NewRequest("GET", "/private", nil)
+	req2.Header.Set("Cookie", res.Header().Get("Set-Cookie"))
+	m.ServeHTTP(res2, req2)
+
+	if !strings.Contains(res2.Header().Get("Set-Cookie"), "seesurf") {
+		t.Error("Failed to set custom csrf cookie")
+	}
+}
+
 func Test_GenerateHeader(t *testing.T) {
 	m := martini.Classic()
 	store := sessions.NewCookieStore([]byte("secret123"))
