@@ -43,12 +43,16 @@
 //
 //     // Render a protected form. Passing a csrf token by calling x.GetToken()
 //     m.Get("/protected", func(s sessions.Session, r render.Render, x csrf.Csrf) {
+//         if s.Get("userID") == nil {
+//             r.Redirect("/login", 401)
+//             return
+//         }
 //         r.HTML(200, "protected", x.GetToken())
 //     })
 //
 //     // Apply csrf validation to route.
 //     m.Post("/protected", csrf.Validate, func(s sessions.Session, r render.Render) {
-//         if u := s.Get("userID"); u != nil {
+//         if s.Get("userID") != nil {
 //             r.HTML(200, "result", "You submitted a valid token")
 //             return
 //         }
