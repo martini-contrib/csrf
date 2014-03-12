@@ -181,42 +181,42 @@ func Generate(opts *Options) martini.Handler {
 		default:
 			return
 		}
-		// Don't set cookie or send header if this is not a get request
-		// or was sent via an api request.
-		if r.Method == "GET" && r.Header.Get("X-API-Key") == "" {
-			// If cookie present, map existing token, else generate a new one.
-			if ex, err := r.Cookie(opts.Cookie); err == nil && ex.Value != "" {
-				x.Token = ex.Value
-			} else {
-				x.Token = xsrftoken.Generate(x.Secret, x.ID, "POST")
-				if opts.SetCookie {
-					expire := time.Now().AddDate(0, 0, 1)
-					// Verify the domain is valid. If it is not, set as empty.
-					domain := strings.Split(r.Host, ":")[0]
-					if ok, err := regexp.Match(domainReg, []byte(domain)); !ok || err != nil {
-						domain = ""
-					}
-					cookie := &http.Cookie{
-						Name:       opts.Cookie,
-						Value:      x.Token,
-						Path:       "/",
-						Domain:     domain,
-						Expires:    expire,
-						RawExpires: expire.Format(time.UnixDate),
-						MaxAge:     0,
-						Secure:     opts.Secure,
-						HttpOnly:   false,
-						Raw:        fmt.Sprintf("%s=%s", opts.Cookie, x.Token),
-						Unparsed:   []string{fmt.Sprintf("token=%s", x.Token)},
-					}
-					http.SetCookie(w, cookie)
+		if r.Method != "GET" {
+			return
+		}
+		// If cookie present, map existing token, else generate a new one.
+		if ex, err := r.Cookie(opts.Cookie); err == nil && ex.Value != "" {
+			x.Token = ex.Value
+		} else {
+			x.Token = xsrftoken.Generate(x.Secret, x.ID, "POST")
+			if opts.SetCookie {
+				expire := time.Now().AddDate(0, 0, 1)
+				// Verify the domain is valid. If it is not, set as empty.
+				domain := strings.Split(r.Host, ":")[0]
+				if ok, err := regexp.Match(domainReg, []byte(domain)); !ok || err != nil {
+					domain = ""
 				}
-			}
-			if opts.SetHeader {
-				w.Header().Add(opts.Header, x.Token)
+				cookie := &http.Cookie{
+					Name:       opts.Cookie,
+					Value:      x.Token,
+					Path:       "/",
+					Domain:     domain,
+					Expires:    expire,
+					RawExpires: expire.Format(time.UnixDate),
+					MaxAge:     0,
+					Secure:     opts.Secure,
+					HttpOnly:   false,
+					Raw:        fmt.Sprintf("%s=%s", opts.Cookie, x.Token),
+					Unparsed:   []string{fmt.Sprintf("token=%s", x.Token)},
+				}
+				http.SetCookie(w, cookie)
 			}
 		}
+		if opts.SetHeader {
+			w.Header().Add(opts.Header, x.Token)
+		}
 	}
+
 }
 
 // Validate should be used as a per route middleware. It attempts to get a token from a "X-CSRFToken"
