@@ -21,7 +21,7 @@ func main() {
 		SessionKey: "userID",
 	}))
 
-	m.Get("/", func(s sessions.Session, r render.Render, x csrf.Csrf) {
+	m.Get("/", func(s sessions.Session, r render.Render, x csrf.CSRF) {
 		if s.Get("userID") == nil {
 			r.Redirect("/login", 302)
 			return

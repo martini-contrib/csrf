@@ -28,7 +28,7 @@ func Test_GenerateToken(t *testing.T) {
 	})
 
 	// Generate token.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return x.GetToken()
 	})
 
@@ -63,7 +63,7 @@ func Test_GenerateCookie(t *testing.T) {
 	})
 
 	// Generate cookie.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return "OK"
 	})
 
@@ -99,7 +99,7 @@ func Test_GenerateCustomCookie(t *testing.T) {
 	})
 
 	// Generate cookie.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return "OK"
 	})
 
@@ -134,7 +134,7 @@ func Test_GenerateHeader(t *testing.T) {
 	})
 
 	// Generate HTTP header.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return "OK"
 	})
 
@@ -170,7 +170,7 @@ func Test_GenerateCustomHeader(t *testing.T) {
 	})
 
 	// Generate HTTP header.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return "OK"
 	})
 
@@ -204,7 +204,7 @@ func Test_Validate(t *testing.T) {
 	})
 
 	// Generate token.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return x.GetToken()
 	})
 
@@ -267,7 +267,7 @@ func Test_ValidateCustom(t *testing.T) {
 	})
 
 	// Generate token.
-	m.Get("/private", func(s sessions.Session, x Csrf) string {
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
 		return x.GetToken()
 	})
 

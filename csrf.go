@@ -42,7 +42,7 @@
 //     })
 //
 //     // Render a protected form. Passing a csrf token by calling x.GetToken()
-//     m.Get("/protected", func(s sessions.Session, r render.Render, x csrf.Csrf) {
+//     m.Get("/protected", func(s sessions.Session, r render.Render, x csrf.CSRF) {
 //         if s.Get("userID") == nil {
 //             r.Redirect("/login", 401)
 //             return
@@ -74,8 +74,8 @@ import (
 	"time"
 )
 
-// Csrf is used to get the current token and validate a suspect token.
-type Csrf interface {
+// CSRF is used to get the current token and validate a suspect token.
+type CSRF interface {
 	// Return HTTP header to search for token.
 	GetHeaderName() string
 	// Return form value to search for token.
@@ -151,7 +151,7 @@ type Options struct {
 
 const domainReg = `/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$/`
 
-// Generate maps Csrf to each request. If this request is a Get request, it will generate a new token.
+// Generate maps CSRF to each request. If this request is a Get request, it will generate a new token.
 // Additionally, depending on options set, generated tokens will be sent via Header and/or Cookie.
 func Generate(opts *Options) martini.Handler {
 	return func(s sessions.Session, c martini.Context, r *http.Request, w http.ResponseWriter) {
@@ -170,7 +170,7 @@ func Generate(opts *Options) martini.Handler {
 			Form:   opts.Form,
 			Cookie: opts.Cookie,
 		}
-		c.MapTo(x, (*Csrf)(nil))
+		c.MapTo(x, (*CSRF)(nil))
 		uid := s.Get(opts.SessionKey)
 		if uid == nil {
 			return
@@ -223,7 +223,7 @@ func Generate(opts *Options) martini.Handler {
 // HTTP header and then a "_csrf" form value. If one of these is found, the token will be validated
 // using ValidToken. If this validation fails, http.StatusBadRequest is sent in the reply.
 // If neither a header or form value is faound, http.StatusBadRequest is sent.
-func Validate(r *http.Request, w http.ResponseWriter, x Csrf) {
+func Validate(r *http.Request, w http.ResponseWriter, x CSRF) {
 	if token := r.Header.Get(x.GetHeaderName()); token != "" {
 		if !x.ValidToken(token) {
 			msg := fmt.Sprintf("Invalid %s", x.GetHeaderName())

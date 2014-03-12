@@ -47,7 +47,7 @@ func main() {
 	})
 
 	// Render a protected form. Passing a csrf token by calling x.GetToken()
-	m.Get("/protected", func(s sessions.Session, r render.Render, x csrf.Csrf) {
+	m.Get("/protected", func(s sessions.Session, r render.Render, x csrf.CSRF) {
 		if s.Get("userID") == nil {
 			r.Redirect("/login", 401)
 			return
