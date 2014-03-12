@@ -27,7 +27,7 @@
 //
 //     // Simulate the authentication of a session. If userID exists redirect
 //     // to a form that requires csrf protection.
-//     m.Get("/", func(s sessions.Session, r render.Render, x csrf.Csrf) {
+//     m.Get("/", func(s sessions.Session, r render.Render) {
 //         if s.Get("userID") == nil {
 //             r.Redirect("/login", 302)
 //             return
