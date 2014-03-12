@@ -76,7 +76,7 @@ import (
 
 // Csrf is used to get the current token and validate a suspect token.
 type Csrf interface {
-	// Return Http header to search for token.
+	// Return HTTP header to search for token.
 	GetHeaderName() string
 	// Return form value to search for token.
 	GetFormName() string
@@ -182,7 +182,7 @@ func Generate(opts *Options) martini.Handler {
 			return
 		}
 		// Don't set cookie or send header if this is not a get request
-		// or was sen't via an api request.
+		// or was sent via an api request.
 		if r.Method == "GET" && r.Header.Get("X-API-Key") == "" {
 			// If cookie present, map existing token, else generate a new one.
 			if ex, err := r.Cookie(opts.Cookie); err == nil && ex.Value != "" {
