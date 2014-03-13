@@ -107,7 +107,7 @@ type csrf struct {
 	ErrorFunc func(w http.ResponseWriter)
 }
 
-// Returns the name of the Http header for csrf token.
+// Returns the name of the HTTP header for csrf token.
 func (c *csrf) GetHeaderName() string {
 	return c.Header
 }
