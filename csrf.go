@@ -2,7 +2,7 @@
 // There are multiple methods of delivery including via a cookie or HTTP
 // header.
 // Validation occurs via a traditional hidden form key of "_csrf", or via
-// a custom HTTP haeder "X-CSRFToken".
+// a custom HTTP header "X-CSRFToken".
 //
 // package main
 //
@@ -86,6 +86,8 @@ type CSRF interface {
 	GetToken() string
 	// Validate by token.
 	ValidToken(t string) bool
+	// Error replies to the request with a custom function when ValidToken fails.
+	Error(w http.ResponseWriter)
 }
 
 type csrf struct {
@@ -101,6 +103,8 @@ type csrf struct {
 	ID string
 	// Secret used along with the unique id above to generate the Token.
 	Secret string
+	// ErrorFunc is the custom function that replies to the request when ValidToken fails.
+	ErrorFunc func(w http.ResponseWriter)
 }
 
 // Returns the name of the Http header for csrf token.
@@ -129,11 +133,16 @@ func (c *csrf) ValidToken(t string) bool {
 	return xsrftoken.Valid(t, c.Secret, c.ID, "POST")
 }
 
+// Error replies to the request when ValidToken fails.
+func (c *csrf) Error(w http.ResponseWriter) {
+	c.ErrorFunc(w)
+}
+
 // Options maintains options to manage behavior of Generate.
 type Options struct {
 	// The global secret value used to generate Tokens.
 	Secret string
-	// Http header used to set and get token.
+	// HTTP header used to set and get token.
 	Header string
 	// Form value used to set and get token.
 	Form string
@@ -147,6 +156,8 @@ type Options struct {
 	SetCookie bool
 	// Set the Secure flag to true on the cookie.
 	Secure bool
+	// The function called when Validate fails.
+	ErrorFunc func(w http.ResponseWriter)
 }
 
 const domainReg = `/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$/`
@@ -164,13 +175,21 @@ func Generate(opts *Options) martini.Handler {
 		if opts.Cookie == "" {
 			opts.Cookie = "_csrf"
 		}
+		if opts.ErrorFunc == nil {
+			opts.ErrorFunc = func(w http.ResponseWriter) {
+				http.Error(w, "Invalid csrf token.", http.StatusBadRequest)
+			}
+		}
+
 		x := &csrf{
-			Secret: opts.Secret,
-			Header: opts.Header,
-			Form:   opts.Form,
-			Cookie: opts.Cookie,
+			Secret:    opts.Secret,
+			Header:    opts.Header,
+			Form:      opts.Form,
+			Cookie:    opts.Cookie,
+			ErrorFunc: opts.ErrorFunc,
 		}
 		c.MapTo(x, (*CSRF)(nil))
+
 		uid := s.Get(opts.SessionKey)
 		if uid == nil {
 			return
@@ -181,9 +200,11 @@ func Generate(opts *Options) martini.Handler {
 		default:
 			return
 		}
+
 		if r.Method != "GET" {
 			return
 		}
+
 		// If cookie present, map existing token, else generate a new one.
 		if ex, err := r.Cookie(opts.Cookie); err == nil && ex.Value != "" {
 			x.Token = ex.Value
@@ -196,6 +217,7 @@ func Generate(opts *Options) martini.Handler {
 				if ok, err := regexp.Match(domainReg, []byte(domain)); !ok || err != nil {
 					domain = ""
 				}
+
 				cookie := &http.Cookie{
 					Name:       opts.Cookie,
 					Value:      x.Token,
@@ -212,6 +234,7 @@ func Generate(opts *Options) martini.Handler {
 				http.SetCookie(w, cookie)
 			}
 		}
+
 		if opts.SetHeader {
 			w.Header().Add(opts.Header, x.Token)
 		}
@@ -221,23 +244,22 @@ func Generate(opts *Options) martini.Handler {
 
 // Validate should be used as a per route middleware. It attempts to get a token from a "X-CSRFToken"
 // HTTP header and then a "_csrf" form value. If one of these is found, the token will be validated
-// using ValidToken. If this validation fails, http.StatusBadRequest is sent in the reply.
-// If neither a header or form value is faound, http.StatusBadRequest is sent.
+// using ValidToken. If this validation fails, custom Error is sent in the reply.
+// If neither a header or form value is found, http.StatusBadRequest is sent.
 func Validate(r *http.Request, w http.ResponseWriter, x CSRF) {
 	if token := r.Header.Get(x.GetHeaderName()); token != "" {
 		if !x.ValidToken(token) {
-			msg := fmt.Sprintf("Invalid %s", x.GetHeaderName())
-			http.Error(w, msg, http.StatusBadRequest)
+			x.Error(w)
 		}
 		return
 	}
 	if token := r.FormValue(x.GetFormName()); token != "" {
 		if !x.ValidToken(token) {
-			msg := fmt.Sprintf("Invalid %s", x.GetFormName())
-			http.Error(w, msg, http.StatusBadRequest)
+			x.Error(w)
 		}
 		return
 	}
+
 	http.Error(w, "Bad Request", http.StatusBadRequest)
 	return
 }

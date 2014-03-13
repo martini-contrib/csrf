@@ -235,7 +235,7 @@ func Test_Validate(t *testing.T) {
 	req3.Header.Set("Cookie", cookie)
 	m.ServeHTTP(res3, req3)
 	if res3.Code == 400 {
-		t.Error("Valiation of _csrf form value failed")
+		t.Error("Validation of _csrf form value failed")
 	}
 
 	// Post using X-CSRFToken HTTP header.
@@ -309,5 +309,73 @@ func Test_ValidateCustom(t *testing.T) {
 	m.ServeHTTP(res4, req4)
 	if res4.Code == 400 {
 		t.Error("Validation of X-SEESurfToken custom header value failed")
+	}
+}
+
+func Test_ValidateCustomError(t *testing.T) {
+	m := martini.Classic()
+	store := sessions.NewCookieStore([]byte("secret123"))
+	m.Use(sessions.Sessions("my_session", store))
+	m.Use(Generate(&Options{
+		Secret:     "token123",
+		SessionKey: "userID",
+		ErrorFunc: func(w http.ResponseWriter) {
+			http.Error(w, "custom error", 422)
+		},
+	}))
+
+	// Simulate login.
+	m.Get("/login", func(s sessions.Session) string {
+		s.Set("userID", "123456")
+		return "OK"
+	})
+
+	// Generate token.
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
+		return x.GetToken()
+	})
+
+	m.Post("/private", Validate, func(s sessions.Session) string {
+		return "OK"
+	})
+
+	// Login to set session.
+	res := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/login", nil)
+	m.ServeHTTP(res, req)
+
+	cookie := res.Header().Get("Set-Cookie")
+
+	// Get a new token.
+	res2 := httptest.NewRecorder()
+	req2, _ := http.NewRequest("GET", "/private", nil)
+	req2.Header.Set("Cookie", cookie)
+	m.ServeHTTP(res2, req2)
+
+	// Post using _csrf form value.
+	data := url.Values{}
+	data.Set("_csrf", "invalid")
+	res3 := httptest.NewRecorder()
+	req3, _ := http.NewRequest("POST", "/private", bytes.NewBufferString(data.Encode()))
+	req3.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req3.Header.Set("Content-Length", strconv.Itoa(len(data.Encode())))
+	m.ServeHTTP(res3, req3)
+	if res3.Code != 422 {
+		t.Errorf("Custom error response code failed: %d", res3.Code)
+	}
+	if res3.Body.String() != "custom error\n" {
+		t.Errorf("Custom error response body failed: %s", res3.Body)
+	}
+
+	// Post using X-CSRFToken HTTP header.
+	res4 := httptest.NewRecorder()
+	req4, _ := http.NewRequest("POST", "/private", nil)
+	req4.Header.Set("X-CSRFToken", "invalid")
+	m.ServeHTTP(res4, req4)
+	if res4.Code != 422 {
+		t.Errorf("Custom error response code failed: %d", res4.Code)
+	}
+	if res4.Body.String() != "custom error\n" {
+		t.Errorf("Custom error response body failed: %s", res4.Body)
 	}
 }
