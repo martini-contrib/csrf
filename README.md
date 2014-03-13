@@ -27,6 +27,10 @@ func main() {
 	m.Use(csrf.Generate(&csrf.Options{
 		Secret:     "token123",
 		SessionKey: "userID",
+		// Custom error response.
+		ErrorFunc: func(w http.ResponseWriter) {
+			http.Error(w, "CSRF token validation failed", http.StatusBadRequest)
+		}
 	}))
 	m.Use(render.Renderer())
 

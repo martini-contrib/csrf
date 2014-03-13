@@ -5,6 +5,10 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/codegangsta/martini"
 	"github.com/martini-contrib/csrf"
 	"github.com/martini-contrib/render"
@@ -19,6 +23,12 @@ func main() {
 	m.Use(csrf.Generate(&csrf.Options{
 		Secret:     "token123",
 		SessionKey: "userID",
+		ErrorFunc: func(w http.ResponseWriter) {
+			buf, _ := ioutil.ReadFile("templates/error.html")
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(422)
+			fmt.Fprintln(w, string(buf))
+		},
 	}))
 
 	m.Get("/", func(s sessions.Session, r render.Render, x csrf.CSRF) {
@@ -44,6 +54,10 @@ func main() {
 			return
 		}
 		r.Redirect("/login", 401)
+	})
+
+	m.Get("/error", func(r render.Render) {
+		r.HTML(200, "custom_error", nil)
 	})
 
 	m.Run()
