@@ -74,5 +74,8 @@ func main() {
 
 ~~~
 
+## Security
+Applications using the [method](https://github.com/martini-contrib/method) package should also validate PATCH, PUT, and DELETE requests.
+
 ## Authors
 * [Tom Steele](http://github.com/tomsteele)
