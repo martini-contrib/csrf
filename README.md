@@ -1,4 +1,4 @@
-csrf
+csrf [![wercker status](https://app.wercker.com/status/ba1aa8d0a0e9c990bff5ceb06af4bc33/s/ "wercker status")](https://app.wercker.com/project/bykey/ba1aa8d0a0e9c990bff5ceb06af4bc33)
 ====
 
 Martini cross-site request forgery protection middlware.
