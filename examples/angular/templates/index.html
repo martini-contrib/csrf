@@ -1,0 +1,14 @@
+<html ng-app="app">
+    <head>
+        <title>Martini CSRF</title>
+        <script src="//code.angularjs.org/1.2.9/angular.js"></script>
+        <script src="//code.angularjs.org/1.2.9/angular-cookies.js"></script>
+        <script src="/main.js"></script>
+    </head>
+    <body ng-controller="protected">
+        <p>You're now at a protected page. Angular is going to do a protected action that requires a csrf token</p>
+        
+        <h3>Protected Result</h3>
+        <h3>{{result}}</h3>
+    </body>
+</html>

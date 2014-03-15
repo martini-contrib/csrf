@@ -1,0 +1,14 @@
+<html>
+    <head>
+        <title>Martini CSRF</title>
+    </head>
+    <body>
+       <p>This form simulates a custom error response. It doesn't matter what you enter in these inputs. It will always return an error.</p>
+        <form action="/protected", method="post">
+          <input type="text" name="foo" placeholder="CC Number">
+          <input type="text" name="bar" placeholder="Amount">
+          <input type="hidden" name="_csrf" value="invalid">
+          <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>

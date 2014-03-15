@@ -1,0 +1,14 @@
+<html>
+    <head>
+        <title>Martini CSRF</title>
+    </head>
+    <body>
+        <p>The form contains a hidden _csrf form value that will be submitted with this form.</p>
+        <form action="/protected", method="post">
+          <input type="text" name="foo" placeholder="CC Number">
+          <input type="text" name="bar" placeholder="Amount">
+          <input type="hidden" name="_csrf" value="{{.}}">
+          <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>
