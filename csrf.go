@@ -197,6 +197,8 @@ func Generate(opts *Options) martini.Handler {
 		switch uid.(type) {
 		case string:
 			x.ID = uid.(string)
+		case int64:
+			x.ID = string(uid.(int64))
 		default:
 			return
 		}
