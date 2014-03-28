@@ -70,6 +70,7 @@ import (
 	"github.com/martini-contrib/sessions"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -198,7 +199,7 @@ func Generate(opts *Options) martini.Handler {
 		case string:
 			x.ID = uid.(string)
 		case int64:
-			x.ID = string(uid.(int64))
+			x.ID = strconv.FormatInt(uid.(int64), 10)
 		default:
 			return
 		}
