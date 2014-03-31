@@ -12,7 +12,7 @@ Martini cross-site request forgery protection middlware.
 package main
 
 import (
-	"github.com/codegangsta/martini"
+	"github.com/go-martini/martini"
 	"github.com/martini-contib/csrf"
 	"github.com/martini-contib/sessions"
 	"github.com/martini-contrib/render"

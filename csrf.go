@@ -7,7 +7,7 @@
 // package main
 //
 // import (
-//     "github.com/codegangsta/martini"
+//     "github.com/go-martini/martini"
 //     "github.com/martini-contib/csrf"
 //     "github.com/martini-contrib/render"
 //     "github.com/martini-contib/sessions"
@@ -66,7 +66,7 @@ package csrf
 import (
 	"code.google.com/p/xsrftoken"
 	"fmt"
-	"github.com/codegangsta/martini"
+	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessions"
 	"net/http"
 	"regexp"

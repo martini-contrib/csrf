@@ -2,7 +2,7 @@ package csrf
 
 import (
 	"bytes"
-	"github.com/codegangsta/martini"
+	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessions"
 	"net/http"
 	"net/http/httptest"
