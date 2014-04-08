@@ -204,7 +204,7 @@ func Generate(opts *Options) martini.Handler {
 			return
 		}
 
-		if r.Method != "GET" {
+		if r.Method != "GET" || r.Header.Get("Origin") != "" {
 			return
 		}
 
