@@ -13,8 +13,8 @@ package main
 
 import (
 	"github.com/go-martini/martini"
-	"github.com/martini-contib/csrf"
-	"github.com/martini-contib/sessions"
+	"github.com/martini-contrib/csrf"
+	"github.com/martini-contrib/sessions"
 	"github.com/martini-contrib/render"
 	"net/http"
 )
