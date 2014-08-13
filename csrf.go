@@ -64,15 +64,17 @@
 package csrf
 
 import (
-	"code.google.com/p/xsrftoken"
 	"fmt"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/sessions"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"code.google.com/p/xsrftoken"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/sessions"
 )
 
 // CSRF is used to get the current token and validate a suspect token.
@@ -204,8 +206,14 @@ func Generate(opts *Options) martini.Handler {
 			return
 		}
 
-		if r.Method != "GET" || r.Header.Get("Origin") != "" {
-			return
+		if r.Header.Get("Origin") != "" {
+			originUrl, err := url.Parse(r.Header.Get("Origin"))
+			if err != nil {
+				return
+			}
+			if originUrl.Host != r.Host {
+				return
+			}
 		}
 
 		// If cookie present, map existing token, else generate a new one.

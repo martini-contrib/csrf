@@ -2,14 +2,15 @@ package csrf
 
 import (
 	"bytes"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/sessions"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/sessions"
 )
 
 func Test_GenerateToken(t *testing.T) {
@@ -151,8 +152,44 @@ func Test_GenerateHeader(t *testing.T) {
 		t.Error("Failed to set X-CSRFToken header")
 	}
 }
+func Test_SameOriginHeader(t *testing.T) {
+	m := martini.Classic()
+	store := sessions.NewCookieStore([]byte("secret123"))
+	m.Use(sessions.Sessions("my_session", store))
+	m.Use(Generate(&Options{
+		Secret:     "token123",
+		SessionKey: "userID",
+		SetHeader:  true,
+	}))
 
-func Test_OriginHeader(t *testing.T) {
+	// Simulate login.
+	m.Get("/login", func(s sessions.Session) string {
+		s.Set("userID", "123456")
+		return "OK"
+	})
+
+	// Generate HTTP header.
+	m.Get("/private", func(s sessions.Session, x CSRF) string {
+		return "OK"
+	})
+
+	res := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/login", nil)
+	m.ServeHTTP(res, req)
+
+	res2 := httptest.NewRecorder()
+	req2, _ := http.NewRequest("GET", "/private", nil)
+	req2.Host = "localhost:3000"
+	req2.Header.Set("Cookie", res.Header().Get("Set-Cookie"))
+	req2.Header.Set("Origin", "https://localhost:3000")
+	m.ServeHTTP(res2, req2)
+
+	if res2.Header().Get("X-CSRFToken") == "" {
+		t.Error("X-CSRFToken not present in same origin request")
+	}
+}
+
+func Test_NotOriginHeader(t *testing.T) {
 	m := martini.Classic()
 	store := sessions.NewCookieStore([]byte("secret123"))
 	m.Use(sessions.Sessions("my_session", store))
