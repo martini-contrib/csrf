@@ -161,6 +161,10 @@ type Options struct {
 	Secure bool
 	// The function called when Validate fails.
 	ErrorFunc func(w http.ResponseWriter)
+	// Array of allowed origins. Will be checked during generation from a cross site request.
+	// Must be the complete origin. Example: 'https://golang.org'. You will only need to set this
+	// if you are supporting CORS.
+	AllowedOrigins []string
 }
 
 const domainReg = `/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$/`
@@ -212,7 +216,16 @@ func Generate(opts *Options) martini.Handler {
 				return
 			}
 			if originUrl.Host != r.Host {
-				return
+				isAllowed := false
+				for _, origin := range opts.AllowedOrigins {
+					if originUrl.String() == origin {
+						isAllowed = true
+						break
+					}
+				}
+				if !isAllowed {
+					return
+				}
 			}
 		}
 
