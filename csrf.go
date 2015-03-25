@@ -167,7 +167,7 @@ type Options struct {
 	AllowedOrigins []string
 }
 
-const domainReg = `/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$/`
+const domainReg = `^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$`
 
 // Generate maps CSRF to each request. If this request is a Get request, it will generate a new token.
 // Additionally, depending on options set, generated tokens will be sent via Header and/or Cookie.
