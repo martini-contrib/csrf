@@ -74,7 +74,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessions"
-	"github.com/tommyp1ckles/xsrftoken.git"
+	"github.com/tommyp1ckles/xsrftoken"
 )
 
 // CSRF is used to get the current token and validate a suspect token.
