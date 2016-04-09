@@ -72,9 +72,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/adg/xsrftoken"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessions"
+	"golang.org/x/net/xsrftoken"
 )
 
 // CSRF is used to get the current token and validate a suspect token.
